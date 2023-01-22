@@ -1,0 +1,24 @@
+name: Build iPod emulator
+
+on: [push]
+
+jobs:
+  job_1:
+    name: Build iPod emulator
+    runs-on: ubuntu-latest
+    steps:
+      - shell: bash
+        run: |
+          sudo apt update
+          sudo apt install ninja-build meson libsdl2-dev libsdl1.2-dev
+          git clone --single-branch --branch ipod_touch_1g https://github.com/devos50/qemu.git --jobs 10
+          cd qemu
+          mkdir build
+          cd build
+          ../configure --enable-sdl --disable-cocoa --target-list=arm-softmmu --disable-capstone --disable-pie --disable-slirp --disable-werror --extra-cflags="-fno-omit-frame-pointer -fsanitize=address -g" --extra-ldflags='-lcrypto -fsanitize=address' # github.com/devos50/qemu/pull/15
+          make -j$(nproc)
+      - name: qemu
+        uses: actions/upload-artifact@v3
+        with:
+          name: qemu
+          path: qemu/
